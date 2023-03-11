@@ -1,51 +1,95 @@
+import axios from "axios"
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom"
 import styled from "styled-components"
+import { AVAILABLE, UNAVAILABLE, SELECTED } from "../../constants/colors";
+
 
 export default function SeatsPage() {
+    const { idSessao } = useParams();
+    const [movie, setMovie] = useState();
+    const [selectedSits, setSelected] = useState([])
+
+
+    useEffect(() => {
+        const promise = axios.get(`https://mock-api.driven.com.br/api/v8/cineflex/showtimes/${idSessao}/seats`)
+
+        promise.then(info => {
+            setMovie(info.data)
+            console.log(info.data)
+        })
+
+        promise.catch(erro => console.log(erro.response.data))
+
+
+    }, [])
+
+    if (movie === undefined) {
+        return <div>Carregando...</div>
+    }
+
+
+    function checkSelect(isAvailable, sitNumber) {
+        if (isAvailable === false) {
+            alert("Esse assento não está disponível")
+            return
+        }
+
+        if (selectedSits.includes(sitNumber)) {
+            const newSelectedSits = selectedSits.filter((n) => n !== sitNumber)
+            setSelected(newSelectedSits)
+            console.log(newSelectedSits)
+        }
+
+        else {
+            const newSelectedSits = [...selectedSits, sitNumber]
+            setSelected(newSelectedSits)
+            console.log(newSelectedSits)
+        }
+    }
 
     return (
         <PageContainer>
             Selecione o(s) assento(s)
 
             <SeatsContainer>
-                <SeatItem>01</SeatItem>
-                <SeatItem>02</SeatItem>
-                <SeatItem>03</SeatItem>
-                <SeatItem>04</SeatItem>
-                <SeatItem>05</SeatItem>
+                {movie.seats.map(s => (
+                    <SeatItem data-test="seat" onClick={() => checkSelect(s.isAvailable, s.name)} selected={selectedSits.includes(s.name)} available={s.isAvailable}>{s.name}</SeatItem>
+                ))}
             </SeatsContainer>
 
             <CaptionContainer>
                 <CaptionItem>
-                    <CaptionCircle />
+                    <CaptionCircle color={SELECTED.color} border={SELECTED.border} />
                     Selecionado
                 </CaptionItem>
                 <CaptionItem>
-                    <CaptionCircle />
+                    <CaptionCircle color={AVAILABLE.color} border={AVAILABLE.border} />
                     Disponível
                 </CaptionItem>
                 <CaptionItem>
-                    <CaptionCircle />
+                    <CaptionCircle color={UNAVAILABLE.color} border={UNAVAILABLE.border} />
                     Indisponível
                 </CaptionItem>
             </CaptionContainer>
 
             <FormContainer>
                 Nome do Comprador:
-                <input placeholder="Digite seu nome..." />
+                <input data-test="client-name" placeholder="Digite seu nome..." />
 
                 CPF do Comprador:
-                <input placeholder="Digite seu CPF..." />
+                <input data-test="client-cpf" placeholder="Digite seu CPF..." />
 
-                <button>Reservar Assento(s)</button>
+                <button data-test="book-seat-btn">Reservar Assento(s)</button>
             </FormContainer>
 
-            <FooterContainer>
+            <FooterContainer data-test="footer">
                 <div>
-                    <img src={"https://br.web.img2.acsta.net/pictures/22/05/16/17/59/5165498.jpg"} alt="poster" />
+                    <img src={movie.movie.posterURL} alt={movie.movie.title} />
                 </div>
                 <div>
-                    <p>Tudo em todo lugar ao mesmo tempo</p>
-                    <p>Sexta - 14h00</p>
+                    <p>{movie.movie.title}</p>
+                    <p>{movie.day.weekday} - {movie.name}</p>
                 </div>
             </FooterContainer>
 
@@ -96,8 +140,8 @@ const CaptionContainer = styled.div`
     margin: 20px;
 `
 const CaptionCircle = styled.div`
-    border: 1px solid blue;         // Essa cor deve mudar
-    background-color: lightblue;    // Essa cor deve mudar
+    border: 1px solid ${props => props.border};         // Essa cor deve mudar
+    background-color: ${props => props.color};    // Essa cor deve mudar
     height: 25px;
     width: 25px;
     border-radius: 25px;
@@ -113,8 +157,33 @@ const CaptionItem = styled.div`
     font-size: 12px;
 `
 const SeatItem = styled.div`
-    border: 1px solid blue;         // Essa cor deve mudar
-    background-color: lightblue;    // Essa cor deve mudar
+    border: 1px solid;         // Essa cor deve mudar
+    ${props => {
+        if (props.available === true && props.selected === false) {
+            return (
+                `background-color: ${AVAILABLE.color};
+                border-color: ${AVAILABLE.border}; 
+                `
+            )
+        }
+
+        else if (props.selected === true) {
+            return (
+                `background-color: ${SELECTED.color};
+                border-color: ${SELECTED.border}; 
+                `
+            )
+        }
+
+        else {
+            return (
+                `background-color: ${UNAVAILABLE.color};
+                border-color: ${UNAVAILABLE.border}; 
+                `
+            )
+        }
+    }}
+
     height: 25px;
     width: 25px;
     border-radius: 25px;
