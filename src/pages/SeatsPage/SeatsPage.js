@@ -9,7 +9,8 @@ export default function SeatsPage() {
     const { idSessao } = useParams();
     const [movie, setMovie] = useState();
     const [selectedSits, setSelected] = useState([])
-
+    const [name, setName] = useState("")
+    const [cpf, setCpf] = useState("")
 
     useEffect(() => {
         const promise = axios.get(`https://mock-api.driven.com.br/api/v8/cineflex/showtimes/${idSessao}/seats`)
@@ -75,13 +76,28 @@ export default function SeatsPage() {
 
             <FormContainer>
                 Nome do Comprador:
-                <input data-test="client-name" placeholder="Digite seu nome..." />
+                <input 
+                    data-test="client-name"
+                    type="text" 
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    placeholder="Digite seu nome..." 
+                    />
 
                 CPF do Comprador:
-                <input data-test="client-cpf" placeholder="Digite seu CPF..." />
+                <input 
+                data-test="client-cpf" 
+                type="number"
+                value={cpf}
+                onChange={e => setCpf(e.target.value)} 
+                placeholder="Digite seu CPF..." />
 
                 <button data-test="book-seat-btn">Reservar Assento(s)</button>
             </FormContainer>
+
+
+
+
 
             <FooterContainer data-test="footer">
                 <div>
