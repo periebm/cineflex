@@ -1,14 +1,16 @@
 import axios from "axios"
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import styled from "styled-components"
 import { AVAILABLE, UNAVAILABLE, SELECTED } from "../../constants/colors";
 
 
-export default function SeatsPage() {
+export default function SeatsPage({setReservation}) {
     const { idSessao } = useParams();
+    const navigate = useNavigate();
     const [movie, setMovie] = useState();
     const [selectedSits, setSelected] = useState([])
+    const [selectedIds, setId] = useState([])
     const [name, setName] = useState("")
     const [cpf, setCpf] = useState("")
 
@@ -17,7 +19,6 @@ export default function SeatsPage() {
 
         promise.then(info => {
             setMovie(info.data)
-            console.log(info.data)
         })
 
         promise.catch(erro => console.log(erro.response.data))
@@ -30,7 +31,7 @@ export default function SeatsPage() {
     }
 
 
-    function checkSelect(isAvailable, sitNumber) {
+    function checkSelect(isAvailable, sitNumber, sitId) {
         if (isAvailable === false) {
             alert("Esse assento não está disponível")
             return
@@ -38,15 +39,28 @@ export default function SeatsPage() {
 
         if (selectedSits.includes(sitNumber)) {
             const newSelectedSits = selectedSits.filter((n) => n !== sitNumber)
+            const newSelectedIds = selectedIds.filter((n) => n !== sitId)
             setSelected(newSelectedSits)
-            console.log(newSelectedSits)
+            setId(newSelectedIds)
         }
 
         else {
             const newSelectedSits = [...selectedSits, sitNumber]
+            const newSelectedIds = [...selectedIds, sitId]
             setSelected(newSelectedSits)
-            console.log(newSelectedSits)
         }
+    }
+
+    function sendInfo(){
+        setReservation({
+            name:movie.movie.title, hour:movie.name, sits:selectedSits, date: movie.day.date, buyer: name, cpf: cpf
+        })
+
+        const promise = axios.post("https://mock-api.driven.com.br/api/v8/cineflex/seats/book-many", {ids: selectedIds, name: name, cpf: cpf.toString()})
+        
+        promise.then(info =>(navigate("/sucesso")))
+                
+        promise.catch(erro => console.log(erro.response.data))
     }
 
     return (
@@ -55,7 +69,7 @@ export default function SeatsPage() {
 
             <SeatsContainer>
                 {movie.seats.map(s => (
-                    <SeatItem data-test="seat" onClick={() => checkSelect(s.isAvailable, s.name)} selected={selectedSits.includes(s.name)} available={s.isAvailable}>{s.name}</SeatItem>
+                    <SeatItem key={s.id} data-test="seat" onClick={() => checkSelect(s.isAvailable, s.name, s.id)} selected={selectedSits.includes(s.name)} available={s.isAvailable}>{s.name}</SeatItem>
                 ))}
             </SeatsContainer>
 
@@ -91,8 +105,9 @@ export default function SeatsPage() {
                 value={cpf}
                 onChange={e => setCpf(e.target.value)} 
                 placeholder="Digite seu CPF..." />
+                
 
-                <button data-test="book-seat-btn">Reservar Assento(s)</button>
+                <button onClick={()=> sendInfo()} data-test="book-seat-btn">Reservar Assento(s)</button>
             </FormContainer>
 
 
