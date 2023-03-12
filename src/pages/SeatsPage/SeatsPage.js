@@ -48,6 +48,8 @@ export default function SeatsPage({setReservation}) {
             const newSelectedSits = [...selectedSits, sitNumber]
             const newSelectedIds = [...selectedIds, sitId]
             setSelected(newSelectedSits)
+            setId(newSelectedIds)
+
         }
     }
 
@@ -55,7 +57,7 @@ export default function SeatsPage({setReservation}) {
         setReservation({
             name:movie.movie.title, hour:movie.name, sits:selectedSits, date: movie.day.date, buyer: name, cpf: cpf
         })
-
+        console.log([selectedIds, name, cpf])
         const promise = axios.post("https://mock-api.driven.com.br/api/v8/cineflex/seats/book-many", {ids: selectedIds, name: name, cpf: cpf})
         
         promise.then(info =>(navigate("/sucesso")))
