@@ -13,7 +13,6 @@ export default function SessionsPage() {
 
         promise.then(info => {
             setMovie(info.data)
-            console.log(info.data)
         })
 
         promise.catch(erro => console.log(erro.response.data))
